@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+supabase
+pydantic
+python-dotenv
+deepface
+tf-keras
+opencv-python
+pillow
+numpy
