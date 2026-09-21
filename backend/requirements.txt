@@ -5,6 +5,8 @@ supabase
 pydantic
 python-dotenv
 deepface
+tf-keras
+tensorflow==2.15.0
 opencv-python-headless
 pillow
 numpy
