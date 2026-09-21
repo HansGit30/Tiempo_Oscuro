@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+//const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'https://tiempo-oscuro.onrender.com/api/v1';
 
 interface SupplierRequest {
   id: string;

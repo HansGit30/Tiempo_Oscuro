@@ -1,7 +1,7 @@
 // frontend/src/services/api.ts
 import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = 'https://tiempo-oscuro.onrender.com/api/v1';
 
 export const registerFace = async (userId: string, imageBlob: Blob) => {
   const formData = new FormData();

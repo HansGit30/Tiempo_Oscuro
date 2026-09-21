@@ -30,7 +30,7 @@ interface ErrorResponse {
   detail: string;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/auth';
+const API_BASE_URL = 'https://tiempo-oscuro.onrender.com/api/v1/auth';
 
 export const CameraScanner: React.FC = () => {
   const navigate = useNavigate();
