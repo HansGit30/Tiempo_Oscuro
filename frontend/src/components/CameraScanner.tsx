@@ -98,10 +98,12 @@ export const CameraScanner: React.FC = () => {
   }, []);
 
   // Envío de Fotogramas en Tiempo Real (320x240)
+ // Envío de Fotogramas en Tiempo Real (320x240)
   const captureFastFrameAndSend = useCallback(async () => {
     const video = videoRef.current;
     const miniCanvas = miniCanvasRef.current;
 
+    // 1. SI YA HAY UNA PETICIÓN EN CURSO, IGNORAR Y NO ENVIAR NADA
     if (
       isFetchingFrame.current ||
       !video ||
@@ -114,28 +116,27 @@ export const CameraScanner: React.FC = () => {
     const ctx = miniCanvas.getContext('2d');
     if (!ctx) return;
 
+    // Marcar como ocupado inmediatamente
+    isFetchingFrame.current = true;
+
     miniCanvas.width = 320;
     miniCanvas.height = 240;
     ctx.drawImage(video, 0, 0, 320, 240);
 
     miniCanvas.toBlob(
       async (blob) => {
-        if (!blob) return;
+        if (!blob) {
+          isFetchingFrame.current = false;
+          return;
+        }
 
-        isFetchingFrame.current = true;
         const formData = new FormData();
         formData.append('file', blob, 'frame_small.jpg');
-
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
-        abortControllerRef.current = new AbortController();
 
         try {
           const response = await fetch(`${API_BASE_URL}/scan-live`, {
             method: 'POST',
             body: formData,
-            signal: abortControllerRef.current.signal,
           });
 
           if (response.ok) {
@@ -150,6 +151,7 @@ export const CameraScanner: React.FC = () => {
             console.error('Error enviando fotograma:', error);
           }
         } finally {
+          // Liberar el bloqueo cuando Render responda
           isFetchingFrame.current = false;
         }
       },
@@ -159,14 +161,15 @@ export const CameraScanner: React.FC = () => {
   }, []);
 
   // Intervalo de Escaneo Continuo (Solo activo en Login)
-  useEffect(() => {
+useEffect(() => {
     if (!isCameraActive || activeTab !== 'login' || userData) {
       setSimilarity(0);
       setIsSpoofDetected(false);
       return;
     }
 
-    const intervalId = setInterval(captureFastFrameAndSend, 150);
+    // CAMBIAR DE 150 A 1500 MS (1 fotograma cada 1.5 segundos)
+    const intervalId = setInterval(captureFastFrameAndSend, 1500);
     return () => clearInterval(intervalId);
   }, [isCameraActive, activeTab, userData, captureFastFrameAndSend]);
 
