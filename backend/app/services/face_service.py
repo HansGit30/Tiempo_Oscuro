@@ -10,19 +10,23 @@ class FaceService:
     @staticmethod
     def _extract_sync(img_np: np.ndarray, enforce_detection: bool) -> list[float]:
         try:
-            # Convertir de RGB (PIL) a BGR (OpenCV)
+            # 1. Convertir de RGB (PIL) a BGR (OpenCV)
             img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
 
-            # Redimensionar si la imagen es muy pequeña para evitar errores de recorte
-            height, width = img_bgr.shape[:2]
-            if height < 200 or width < 200:
-                img_bgr = cv2.resize(img_bgr, (640, 480), interpolation=cv2.INTER_CUBIC)
+            # 2. Reducir resolución para ahorrar RAM y CPU en Render
+            h, w = img_bgr.shape[:2]
+            max_dim = 320
+            if max(h, w) > max_dim:
+                scale = max_dim / float(max(h, w))
+                new_w = int(w * scale)
+                new_h = int(h * scale)
+                img_bgr = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-            # Extraer embedding con Facenet y fastmtcnn
+            # 3. Extraer embedding usando 'opencv' (Ultraliviano para el plan Free)
             results = DeepFace.represent(
                 img_path=img_bgr, 
                 model_name="Facenet", 
-                detector_backend="fastmtcnn",
+                detector_backend="opencv",  # Cambio clave: consume < 50MB de RAM por request
                 enforce_detection=enforce_detection
             )
             
@@ -32,7 +36,7 @@ class FaceService:
             return results[0]["embedding"]
 
         except Exception:
-            # Respaldo seguro si falla la detección rígida
+            # Respaldo seguro con detección forzada en False por si el encuadre es difícil
             try:
                 results = DeepFace.represent(
                     img_path=img_bgr,

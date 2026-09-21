@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
+import cv2
+import numpy as np
 
 # Servicios e importaciones del proyecto principal
 from app.services.face_service import FaceService
@@ -189,6 +191,19 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 async def scan_live(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
+
+        # 1. Decodificar la imagen enviada
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        # 2. Reducir resolución para ahorrar hasta un 70% de procesamiento y memoria
+        if img is not None:
+            img_small = cv2.resize(img, (300, 300))
+            # Convertir de nuevo a bytes o matriz liviana
+            _, buffer = cv2.imencode('.jpg', img_small, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
+            image_bytes = buffer.tobytes()
+
+        # 3. Extraer el embedding con la imagen comprimida
         current_embedding = await FaceService.extract_embedding(image_bytes, enforce_detection=False)
 
         if not current_embedding or len(current_embedding) == 0:

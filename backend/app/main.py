@@ -1,24 +1,45 @@
+import os
+
+# 1. Limitar hilos y logs de TensorFlow ANTES de importar otras librerías
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+
+import tensorflow as tf
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from deepface import DeepFace
 
-# Importación de routers
+# Importación de routers limpia (sin duplicados)
 from app.api.v1.endpoints import auth as auth_router
 from app.api.v1.endpoints import admin as admin_router
 from app.api.v1.endpoints import books as books_router
 
-from app.api.v1.endpoints.auth import router as auth_router
 
+# Evento de inicio/cierre para precargar el modelo pesado en memoria una sola vez
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        # Precargar el modelo para no ralentizar el primer escaneo facial
+        DeepFace.build_model("Facenet")
+    except Exception as e:
+        print(f"Advertencia al precargar el modelo DeepFace: {e}")
+    yield
 
 
 app = FastAPI(
     title="API de Reconocimiento Facial (DeepFace) & Librería",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# 1. Configuración de CORS
-
-
+# Configuración de CORS
 origins = [
     "https://tiempo-oscuro-5ck5-kappa.vercel.app",
     "http://localhost:5173",
@@ -35,7 +56,7 @@ app.add_middleware(
 )
 
 
-# 2. Captura global de errores
+# Captura global de errores
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
@@ -44,14 +65,12 @@ async def global_exception_handler(request: Request, exc: Exception):
         headers={"Access-Control-Allow-Origin": "*"}
     )
 
-# 3. Registro de Routers
-# Como auth.router ya contiene prefix="/auth", al agregar prefix="/api/v1"
-# la ruta final para todos los endpoints de auth será: /api/v1/auth/...
-#app.include_router(auth_router.router, prefix="/api/v1")
-app.include_router(auth_router, prefix="/api/v1/auth")
+
+# Registro de Routers (Única declaración por módulo)
+app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(admin_router.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(books_router.router, prefix="/api/v1/books", tags=["Books"])
-app.include_router(auth_router, prefix="/api/v1/auth")
+
 
 @app.get("/")
 def read_root():
