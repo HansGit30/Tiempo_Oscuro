@@ -30,7 +30,7 @@ interface ErrorResponse {
   detail: string;
 }
 
-// Configuración centralizada de la API en Render
+// Configuración de la API hacia tu backend en Render
 const API_BASE_URL = 'https://tiempo-oscuro.onrender.com/api/v1/auth';
 
 export const CameraScanner: React.FC = () => {
@@ -103,6 +103,7 @@ export const CameraScanner: React.FC = () => {
     const video = videoRef.current;
     const miniCanvas = miniCanvasRef.current;
 
+    // Control estricto de concurrencia: Si ya hay un request activo, cancelar el nuevo envío
     if (
       isFetchingFrame.current ||
       !video ||
@@ -131,10 +132,10 @@ export const CameraScanner: React.FC = () => {
         const formData = new FormData();
         formData.append('file', blob, 'frame_small.jpg');
 
-        // Configuración de AbortController para cancelar peticiones pendientes si es necesario
         abortControllerRef.current = new AbortController();
 
         try {
+          // Petición apuntando explícitamente al endpoint de Render
           const response = await fetch(`${API_BASE_URL}/scan-live`, {
             method: 'POST',
             body: formData,
@@ -161,7 +162,7 @@ export const CameraScanner: React.FC = () => {
     );
   }, []);
 
-  // Intervalo optimizado para Servidores Gratuitos (1 fotograma cada 1.5 segundos)
+  // Intervalo optimizado para Servidores Gratuitos en Render (1.5 segundos)
   useEffect(() => {
     if (!isCameraActive || activeTab !== 'login' || userData) {
       setSimilarity(0);
@@ -255,10 +256,11 @@ export const CameraScanner: React.FC = () => {
             setUserData(null);
             lastFailedAuthTime.current = Date.now();
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error durante la autenticación:', error);
+          const errObj = error as { message?: string };
           setMessage({
-            text: error?.message ? `Error de conexión: ${error.message}` : 'Error al conectar con el servidor en Render.',
+            text: errObj?.message ? `Error de conexión: ${errObj.message}` : 'Error al conectar con el servidor en Render.',
             isError: true,
           });
           lastFailedAuthTime.current = Date.now();
@@ -347,7 +349,7 @@ export const CameraScanner: React.FC = () => {
               isError: true,
             });
           }
-        } catch (error) {
+        } catch {
           setMessage({ text: 'Error conectando con el servidor en Render.', isError: true });
         } finally {
           setLoading(false);
