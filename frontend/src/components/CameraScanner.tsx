@@ -30,6 +30,7 @@ interface ErrorResponse {
   detail: string;
 }
 
+// Configuración centralizada de la API en Render
 const API_BASE_URL = 'https://tiempo-oscuro.onrender.com/api/v1/auth';
 
 export const CameraScanner: React.FC = () => {
@@ -54,7 +55,7 @@ export const CameraScanner: React.FC = () => {
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [isSpoofDetected, setIsSpoofDetected] = useState<boolean>(false);
 
-  // Función helper para apagar los tracks de la cámara
+  // Apagar los tracks de la cámara
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
@@ -97,13 +98,11 @@ export const CameraScanner: React.FC = () => {
     };
   }, []);
 
-  // Envío de Fotogramas en Tiempo Real (320x240)
- // Envío de Fotogramas en Tiempo Real (320x240)
+  // Envío de fotogramas livianos para el preview en vivo (320x240 @ 0.5 calidad)
   const captureFastFrameAndSend = useCallback(async () => {
     const video = videoRef.current;
     const miniCanvas = miniCanvasRef.current;
 
-    // 1. SI YA HAY UNA PETICIÓN EN CURSO, IGNORAR Y NO ENVIAR NADA
     if (
       isFetchingFrame.current ||
       !video ||
@@ -116,7 +115,6 @@ export const CameraScanner: React.FC = () => {
     const ctx = miniCanvas.getContext('2d');
     if (!ctx) return;
 
-    // Marcar como ocupado inmediatamente
     isFetchingFrame.current = true;
 
     miniCanvas.width = 320;
@@ -133,10 +131,14 @@ export const CameraScanner: React.FC = () => {
         const formData = new FormData();
         formData.append('file', blob, 'frame_small.jpg');
 
+        // Configuración de AbortController para cancelar peticiones pendientes si es necesario
+        abortControllerRef.current = new AbortController();
+
         try {
           const response = await fetch(`${API_BASE_URL}/scan-live`, {
             method: 'POST',
             body: formData,
+            signal: abortControllerRef.current.signal,
           });
 
           if (response.ok) {
@@ -151,7 +153,6 @@ export const CameraScanner: React.FC = () => {
             console.error('Error enviando fotograma:', error);
           }
         } finally {
-          // Liberar el bloqueo cuando Render responda
           isFetchingFrame.current = false;
         }
       },
@@ -160,21 +161,19 @@ export const CameraScanner: React.FC = () => {
     );
   }, []);
 
-  // Intervalo de Escaneo Continuo (Solo activo en Login)
-useEffect(() => {
+  // Intervalo optimizado para Servidores Gratuitos (1 fotograma cada 1.5 segundos)
+  useEffect(() => {
     if (!isCameraActive || activeTab !== 'login' || userData) {
       setSimilarity(0);
       setIsSpoofDetected(false);
       return;
     }
 
-    // CAMBIAR DE 150 A 1500 MS (1 fotograma cada 1.5 segundos)
     const intervalId = setInterval(captureFastFrameAndSend, 1500);
     return () => clearInterval(intervalId);
   }, [isCameraActive, activeTab, userData, captureFastFrameAndSend]);
 
-  // Proceso de Login (HD 640x480)
-// Proceso de Login (HD 640x480)
+  // Proceso de Autenticación Facial
   const handleLogin = useCallback(async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -184,7 +183,6 @@ useEffect(() => {
       return;
     }
 
-    // 1. Cancelar cualquier petición viva de /scan-live para evitar colisión de red
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -225,7 +223,6 @@ useEffect(() => {
           if (response.ok) {
             const res = data as LoginSuccessResponse;
 
-            // Guardar credenciales de sesión en almacenamiento local
             if (res.access_token) {
               localStorage.setItem('token', res.access_token);
             }
@@ -240,7 +237,6 @@ useEffect(() => {
             });
             setUserData(res.user);
 
-            // Redirección condicionada por el rol del usuario
             setTimeout(() => {
               stopCamera();
               const userRole = res.user?.role;
@@ -262,7 +258,7 @@ useEffect(() => {
         } catch (error: any) {
           console.error('Error durante la autenticación:', error);
           setMessage({
-            text: error?.message ? `Error de conexión: ${error.message}` : 'Error al conectar con el servidor.',
+            text: error?.message ? `Error de conexión: ${error.message}` : 'Error al conectar con el servidor en Render.',
             isError: true,
           });
           lastFailedAuthTime.current = Date.now();
@@ -272,11 +268,11 @@ useEffect(() => {
         }
       },
       'image/jpeg',
-      0.90
+      0.80
     );
   }, [navigate]);
 
-  // Disparador de Auto-login
+  // Auto-login disparado por alto porcentaje de coincidencia
   useEffect(() => {
     const now = Date.now();
     const isCoolingDown = now - lastFailedAuthTime.current < 3000;
@@ -294,7 +290,7 @@ useEffect(() => {
     }
   }, [similarity, activeTab, loading, userData, handleLogin]);
 
-  // Proceso de Registro
+  // Proceso de Registro de Plantilla de Rostro
   const handleRegister = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -324,9 +320,16 @@ useEffect(() => {
         const formData = new FormData();
         formData.append('file', blob, 'register.jpg');
 
+        const token = localStorage.getItem('token');
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         try {
           const response = await fetch(`${API_BASE_URL}/register-face`, {
             method: 'POST',
+            headers: headers,
             body: formData,
           });
 
@@ -345,13 +348,13 @@ useEffect(() => {
             });
           }
         } catch (error) {
-          setMessage({ text: 'Error conectando con el servidor.', isError: true });
+          setMessage({ text: 'Error conectando con el servidor en Render.', isError: true });
         } finally {
           setLoading(false);
         }
       },
       'image/jpeg',
-      0.90
+      0.80
     );
   };
 
@@ -409,7 +412,7 @@ useEffect(() => {
 
       {/* Grid Principal */}
       <div style={styles.gridContainer}>
-        {/* Columna Izquierda: Visor de Cámara */}
+        {/* Visor de Cámara */}
         <div style={styles.cameraCard}>
           <div style={styles.videoContainer}>
             <video
@@ -461,7 +464,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Columna Derecha: Renderizado condicional según la pestaña */}
+        {/* Panel Lateral Interactivo */}
         {activeTab === 'login' ? (
           <div style={styles.metricsCard}>
             <span style={styles.metricsTitle}>SIMILITUD FACIAL</span>
