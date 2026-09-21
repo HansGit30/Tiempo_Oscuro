@@ -3,6 +3,7 @@ uvicorn[standard]
 python-multipart
 supabase
 pydantic
+email-validator
 python-dotenv
 deepface
 tf-keras
