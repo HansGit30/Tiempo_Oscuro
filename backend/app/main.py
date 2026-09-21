@@ -17,13 +17,23 @@ app = FastAPI(
 )
 
 # 1. Configuración de CORS
+
+
+origins = [
+    "https://tiempo-oscuro-5ck5-kappa.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "*"  # Permite todos los orígenes durante pruebas
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # O ["http://localhost:5173"]
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # 2. Captura global de errores
 @app.exception_handler(Exception)
