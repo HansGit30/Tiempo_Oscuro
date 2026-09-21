@@ -186,7 +186,6 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 # ==========================================
 # ENDPOINTS DE RECONOCIMIENTO FACIAL
 # ==========================================
-
 @router.post("/scan-live")
 async def scan_live(file: UploadFile = File(...)):
     try:
@@ -203,8 +202,13 @@ async def scan_live(file: UploadFile = File(...)):
             _, buffer = cv2.imencode('.jpg', img_small, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
             image_bytes = buffer.tobytes()
 
-        # 3. Extraer el embedding con la imagen comprimida
-        current_embedding = await FaceService.extract_embedding(image_bytes, enforce_detection=False)
+        # 3. Extraer el embedding asegurando el uso del modelo SFace
+        current_embedding = await FaceService.extract_embedding(
+            image_bytes, 
+            model_name="SFace",          # <-- Forzamos SFace para optimizar RAM
+            detector_backend="opencv",   # <-- Backend liviano y rápido
+            enforce_detection=False
+        )
 
         if not current_embedding or len(current_embedding) == 0:
             return {"detected": False, "match_percentage": 0, "distance": 1.0}
@@ -225,7 +229,7 @@ async def scan_live(file: UploadFile = File(...)):
         return {"detected": False, "match_percentage": 0, "distance": 1.0}
     finally:
         await file.close()
-
+        
 @router.post("/login-face")
 async def login_face(file: UploadFile = File(...)):
     try:

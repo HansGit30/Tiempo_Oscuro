@@ -8,7 +8,12 @@ from fastapi import HTTPException
 
 class FaceService:
     @staticmethod
-    def _extract_sync(img_np: np.ndarray, enforce_detection: bool) -> list[float]:
+    def _extract_sync(
+        img_np: np.ndarray, 
+        enforce_detection: bool, 
+        model_name: str = "SFace", 
+        detector_backend: str = "opencv"
+    ) -> list[float]:
         try:
             # 1. Convertir de RGB (PIL) a BGR (OpenCV)
             img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
@@ -22,11 +27,11 @@ class FaceService:
                 new_h = int(h * scale)
                 img_bgr = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-            # 3. Extraer embedding usando 'opencv' (Ultraliviano para el plan Free)
+            # 3. Extraer embedding usando 'SFace' (Ultraliviano para el plan Free de Render)
             results = DeepFace.represent(
                 img_path=img_bgr, 
-                model_name="Facenet", 
-                detector_backend="opencv",  # Cambio clave: consume < 50MB de RAM por request
+                model_name=model_name, 
+                detector_backend=detector_backend,  # Consume < 50MB de RAM por request
                 enforce_detection=enforce_detection
             )
             
@@ -40,8 +45,8 @@ class FaceService:
             try:
                 results = DeepFace.represent(
                     img_path=img_bgr,
-                    model_name="Facenet",
-                    detector_backend="opencv",
+                    model_name=model_name,
+                    detector_backend=detector_backend,
                     enforce_detection=False
                 )
                 if results and len(results) > 0:
@@ -51,7 +56,12 @@ class FaceService:
             return []
 
     @staticmethod
-    async def extract_embedding(image_bytes: bytes, enforce_detection: bool = True) -> list[float]:
+    async def extract_embedding(
+        image_bytes: bytes, 
+        enforce_detection: bool = True,
+        model_name: str = "SFace",
+        detector_backend: str = "opencv"
+    ) -> list[float]:
         try:
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
             img_np = np.array(image)
@@ -61,7 +71,13 @@ class FaceService:
                     raise HTTPException(status_code=400, detail="La imagen está muy oscura o vacía.")
                 return []
 
-            embedding = await asyncio.to_thread(FaceService._extract_sync, img_np, enforce_detection)
+            embedding = await asyncio.to_thread(
+                FaceService._extract_sync, 
+                img_np, 
+                enforce_detection, 
+                model_name, 
+                detector_backend
+            )
             
             if not embedding and enforce_detection:
                 raise HTTPException(
@@ -86,7 +102,7 @@ class FaceService:
         vec1 = np.array(embedding1, dtype=np.float32)
         vec2 = np.array(embedding2, dtype=np.float32)
         
-        # Normalización L2 imprescindible para Facenet
+        # Normalización L2 (Recomendada para comparaciones vectoriales)
         norm1 = np.linalg.norm(vec1)
         norm2 = np.linalg.norm(vec2)
         

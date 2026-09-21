@@ -16,18 +16,19 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from deepface import DeepFace
 
-# Importación de routers limpia (sin duplicados)
+# Importación de routers limpia
 from app.api.v1.endpoints import auth as auth_router
 from app.api.v1.endpoints import admin as admin_router
 from app.api.v1.endpoints import books as books_router
 
 
-# Evento de inicio/cierre para precargar el modelo pesado en memoria una sola vez
+# Evento de inicio/cierre para precargar el modelo liviano en memoria
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        # Precargar el modelo para no ralentizar el primer escaneo facial
-        DeepFace.build_model("Facenet")
+        # Precargar el modelo SFace en lugar de Facenet para optimizar la RAM en Render
+        DeepFace.build_model("SFace")
+        print("Modelo SFace precargado exitosamente en memoria.")
     except Exception as e:
         print(f"Advertencia al precargar el modelo DeepFace: {e}")
     yield
@@ -66,7 +67,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Registro de Routers (Única declaración por módulo)
+# Registro de Routers
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(admin_router.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(books_router.router, prefix="/api/v1/books", tags=["Books"])
