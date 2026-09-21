@@ -1,0 +1,119 @@
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background-color: #faf9f5; /* Fondo beige claro orgánico */
+  border-right: 1px solid #e8e5dc;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 20px 24px 20px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Brand Header */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 36px;
+  padding-left: 4px;
+}
+
+.brand-text h2 {
+  font-family: 'Georgia', serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #132a21;
+  margin: 0;
+  line-height: 1;
+}
+
+.brand-text span {
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: #7c8c7f;
+  font-weight: 500;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Subtítulos de Sección */
+.sidebar-section-title {
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  color: #9ea8a0;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-left: 8px;
+}
+
+/* Navegación */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  color: #647067;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: #f0eee6;
+  color: #132a21;
+}
+
+.nav-item.active {
+  background-color: #e8eee4; /* Verde pistacho muy suave */
+  color: #1a3a2a;
+  font-weight: 600;
+}
+
+/* Tarjeta Inferior inspiracional */
+.quote-card {
+  background-color: #f2f0e6;
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quote-text {
+  font-family: 'Georgia', serif;
+  font-size: 1.25rem;
+  color: #132a21;
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* Botón Salir */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: #8c7a6b;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 12px 8px 0 8px;
+  margin-top: 16px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.logout-btn:hover {
+  color: #be123c;
+}

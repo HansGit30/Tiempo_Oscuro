@@ -1,0 +1,143 @@
+.about-section {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #ffffff;
+  padding: 8rem 2rem 10rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Trazo verde ajustado a la izquierda */
+.green-stroke-left {
+  position: absolute;
+  top: 0;
+  left: -50px;
+  width: 300px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.green-stroke-left svg {
+  width: 100%;
+  height: 100%;
+}
+
+.about-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 5rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Columna Izquierda */
+.about-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 1rem;
+}
+
+.about-title {
+  font-size: clamp(4rem, 7vw, 6rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  color: #0b132b;
+  margin-bottom: 2rem;
+  line-height: 0.9;
+}
+
+.about-description {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #2b2d42;
+  margin-bottom: 2rem;
+  max-width: 380px;
+}
+
+.about-link {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #000000;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: opacity 0.3s ease;
+}
+
+.about-link:hover {
+  opacity: 0.7;
+}
+
+/* Timeline Derecha */
+.about-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.timeline-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.timeline-year {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #0b132b;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.timeline-month {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0b132b;
+}
+
+.timeline-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: rgba(11, 19, 43, 0.75);
+}
+
+/* Adaptación Móvil */
+@media (max-width: 850px) {
+  .about-container {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+
+.about-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.green-stroke-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.green-stroke-left svg {
+  width: 100%;
+  height: 100%;
+}

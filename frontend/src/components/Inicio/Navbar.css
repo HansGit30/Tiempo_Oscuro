@@ -1,0 +1,61 @@
+.navbar {
+  position: relative;
+  width: 100vw;
+  height: 70px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.brand-logo {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.brand-logo span {
+  color: #00b359;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: #000000;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.lang-switch {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.lang-switch .active {
+  color: #000000;
+}
+
+
+.lang-switch a {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+}
+
+/* Opcional: efecto visual al pasar el cursor */
+.lang-switch a:hover {
+  opacity: 0.8;
+}
+
+

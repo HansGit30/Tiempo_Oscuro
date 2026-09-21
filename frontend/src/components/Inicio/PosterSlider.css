@@ -1,0 +1,15 @@
+.slider-overflow-wrapper {
+  width: 100vw;
+  overflow: hidden;
+  z-index: 10;
+  margin-top: auto;
+  margin-bottom: 1rem;
+}
+
+.slider-track {
+  display: flex;
+  gap: 1.2rem;
+  width: max-content;
+  will-change: transform;
+  padding-left: 2rem;
+}

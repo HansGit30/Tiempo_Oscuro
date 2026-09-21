@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+* {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+.hero-wrapper {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.hero-sticky {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 140px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* BLOQUE DE TEXTO SUPERIOR */
+.hero-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 5;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 1.5rem;
+  transform-origin: top center;
+}
+
+.hero-main-title {
+  font-size: clamp(3.5rem, 8vw, 7.5rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -3px;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.hero-subtext {
+  max-width: 520px;
+  margin-top: 1.5rem;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.75);
+  opacity: 0;
+}
+
+/* CONTENEDOR DEL SLIDER */
+.slider-animation-wrapper {
+  position: absolute;
+  bottom: 60px;
+  width: 100vw;
+  transform: translateY(300px);
+  opacity: 0;
+  z-index: 10;
+}
+
+/* INDICADOR DE SCROLL */
+.scroll-indicator {
+  position: absolute;
+  bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  z-index: 5;
+}
+
+.circle-dot {
+  width: 6px;
+  height: 6px;
+  border: 2px solid #000000;
+  border-radius: 50%;
+}

@@ -1,0 +1,143 @@
+.footer {
+  width: 100%;
+  background-color: #000000;
+  color: #ffffff;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* 1. Barra superior NOTICE */
+.footer-notice-bar {
+  border-bottom: 1px solid #1a1a1a;
+  padding: 24px 40px;
+}
+
+.footer-notice-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notice-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.notice-badge {
+  color: #00e676;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.notice-text {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+}
+
+.notice-date {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* 2. Sección central de información y copyright */
+.footer-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 40px 30px;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.footer-links a:hover {
+  opacity: 0.7;
+}
+
+.footer-links .separator {
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+.footer-copyright {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* 3. Texto gigante inferior con desplazamiento continuo */
+.footer-marquee {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-top: 10px;
+  display: flex;
+  user-select: none;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 40px;
+  animation: scrollMarquee 25s linear infinite;
+}
+
+.marquee-track span {
+  font-size: 13vw;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -2px;
+  color: #ffffff;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+@keyframes scrollMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .footer-notice-bar {
+    padding: 18px 20px;
+  }
+
+  .footer-notice-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .notice-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .footer-body {
+    padding: 30px 20px 20px;
+  }
+
+  .marquee-track span {
+    font-size: 18vw;
+  }
+}

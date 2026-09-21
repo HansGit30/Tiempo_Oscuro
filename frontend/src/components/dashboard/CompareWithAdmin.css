@@ -1,0 +1,347 @@
+/* =========================================================
+   ESTILOS PARA EL LABORATORIO DE COMPARACIÓN FACIAL
+   ========================================================= */
+
+.lab-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1a202c;
+  box-sizing: border-box;
+}
+
+/* Encabezado */
+.lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.lab-subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #8c6d3f;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.lab-title {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: #0d2818;
+  margin: 0;
+}
+
+.lab-description {
+  font-size: 14px;
+  color: #718096;
+  margin-top: 4px;
+}
+
+.lab-header-icon {
+  width: 48px;
+  height: 48px;
+  background-color: #e8f0ea;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #164e2a;
+}
+
+/* Grid Principal de 2 Columnas */
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .lab-grid {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+/* Visor de Cámara */
+.camera-card {
+  background-color: #1a2e26;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 440px;
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.webcam-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 16px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.webcam-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.scanning-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(16, 185, 129, 0.85);
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  backdrop-filter: blur(4px);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.camera-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.camera-icon-circle {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  background-color: rgba(22, 78, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(209, 250, 229, 0.8);
+}
+
+.placeholder-title {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 26px;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.placeholder-text {
+  font-size: 14px;
+  color: rgba(209, 250, 229, 0.6);
+  margin-bottom: 24px;
+}
+
+.btn-toggle-camera {
+  padding: 12px 24px;
+  background-color: #e8eae3;
+  color: #0d2818;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-toggle-camera:hover {
+  background-color: #ffffff;
+}
+
+.camera-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(22, 78, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(209, 250, 229, 0.7);
+}
+
+.btn-turn-off {
+  background: none;
+  border: none;
+  color: #fca5a5;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 12px;
+}
+
+.btn-turn-off:hover {
+  color: #f87171;
+}
+
+/* Panel de Similitud Facial */
+.results-card {
+  background-color: #f6f7f2;
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.metric-container {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.metric-number {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 48px;
+  font-weight: 500;
+  color: #0d2818;
+}
+
+.metric-symbol {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 24px;
+  color: #0d2818;
+  margin-left: 4px;
+}
+
+/* Barra de Progreso */
+.progress-bar-wrapper {
+  position: relative;
+  margin: 24px 0;
+}
+
+.progress-track {
+  width: 100%;
+  background-color: #e2e8f0;
+  height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background-color: #0d2818;
+  height: 100%;
+  transition: width 0.3s ease-out;
+}
+
+.threshold-marker {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.threshold-line {
+  width: 2px;
+  height: 16px;
+  background-color: #a0aec0;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #a0aec0;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* Estado de Validación */
+.status-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.status-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.status-text {
+  font-size: 12px;
+  color: #718096;
+  padding-left: 28px;
+  margin: 0;
+}
+
+/* Metadatos del Modelo */
+.model-details {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  font-size: 12px;
+  color: #718096;
+}
+
+.model-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.model-value {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.model-disclaimer {
+  font-size: 10px;
+  color: #a0aec0;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #edf2f7;
+  line-height: 1.3;
+}
+
+/* Alertas y Utilidades */
+.alert-error {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  border-radius: 12px;
+  font-size: 12px;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
