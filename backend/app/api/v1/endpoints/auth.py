@@ -73,23 +73,20 @@ def get_cached_admin_embedding():
 
 def calculate_similarity_percentage(distance: float) -> float:
     """
-    Calibración optimizada para SFace:
-    - Distancia <= 0.0  -> 100% de match
-    - Distancia == 0.40 -> ~88% de match
-    - Distancia == 0.50 -> ~82.1% de match (umbral de corte exigido)
-    - Distancia >= 0.75 -> 0% de match
+    SFace con Distancia Coseno:
+    - Distancia <= 0.20 -> 90% a 100% match
+    - Distancia == 0.38 -> ~82% match (Umbral de corte)
+    - Distancia >= 0.65 -> 0% match
     """
     if distance <= 0.0:
         return 100.0
     
-    max_threshold = 0.75
+    max_threshold = 0.65
     if distance >= max_threshold:
         return 0.0
 
-    # Curva suave adaptada a SFace
-    normalized = distance / max_threshold
-    similarity = (1.0 - (normalized ** 0.65)) * 100.0
-
+    # Conversión lineal/exponencial suave basada en distancia coseno
+    similarity = (1.0 - (distance / max_threshold)) * 100.0
     return round(max(0.0, min(100.0, similarity)), 1)
 
 # ==========================================

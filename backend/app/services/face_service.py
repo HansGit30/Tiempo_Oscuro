@@ -95,21 +95,22 @@ class FaceService:
             return []
 
     @staticmethod
-    def calculate_distance(embedding1: list[float], embedding2: list[float]) -> float:
-        if not embedding1 or not embedding2 or len(embedding1) != len(embedding2):
+    def calculate_distance(source_representation, test_representation) -> float:
+        a = np.array(source_representation, dtype=np.float32)
+        b = np.array(test_representation, dtype=np.float32)
+        
+        # Normalización L2
+        norm_a = np.linalg.norm(a)
+        norm_b = np.linalg.norm(b)
+        
+        if norm_a == 0 or norm_b == 0:
             return 1.0
+            
+        a = a / norm_a
+        b = b / norm_b
         
-        vec1 = np.array(embedding1, dtype=np.float32)
-        vec2 = np.array(embedding2, dtype=np.float32)
+        # Distancia Coseno = 1 - Similaridad Coseno
+        cosine_similarity = np.dot(a, b)
+        cosine_distance = 1.0 - cosine_similarity
         
-        # Normalización L2 (Recomendada para comparaciones vectoriales)
-        norm1 = np.linalg.norm(vec1)
-        norm2 = np.linalg.norm(vec2)
-        
-        if norm1 == 0 or norm2 == 0:
-            return 1.0
-
-        vec1 = vec1 / norm1
-        vec2 = vec2 / norm2
-        
-        return float(np.linalg.norm(vec1 - vec2))
+        return float(cosine_distance)
