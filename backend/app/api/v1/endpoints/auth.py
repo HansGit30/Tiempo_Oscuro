@@ -165,11 +165,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 # Usamos 'def' síncrono para delegar el cálculo CPU-bound al threadpool de FastAPI
 @router.post("/scan-live")
-def scan_live(file: UploadFile = File(...)):
+async def scan_live(file: UploadFile = File(...)):
     try:
-        image_bytes = file.file.read()
+        image_bytes = await file.read()
 
-        current_embedding = FaceService.extract_embedding(
+        current_embedding = await FaceService.extract_embedding(
             image_bytes, 
             model_name=DEFAULT_MODEL, 
             detector_backend=DEFAULT_DETECTOR, 
@@ -195,7 +195,6 @@ def scan_live(file: UploadFile = File(...)):
                 "distance": 1.0
             }
 
-        # Validar dimensiones
         if len(current_embedding) != len(admin_emb):
             print(f"⚠️ Descuadre de vectores: Detección={len(current_embedding)}, Registrado={len(admin_emb)}")
             return {
@@ -209,7 +208,6 @@ def scan_live(file: UploadFile = File(...)):
         distance = FaceService.calculate_distance(current_embedding, admin_emb)
         match_percentage = calculate_similarity_percentage(distance)
 
-        # Devolvemos TODAS las variantes de nombres para asegurar compatibilidad total con el Frontend
         return {
             "detected": True,
             "match_percentage": match_percentage,
@@ -226,6 +224,8 @@ def scan_live(file: UploadFile = File(...)):
             "similarity_percentage": 0,
             "distance": 1.0
         }
+    finally:
+        await file.close()
 
 @router.post("/login-face")
 def login_face(file: UploadFile = File(...)):
@@ -352,16 +352,15 @@ def login_face(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Error interno procesando la autenticación facial: {str(e)}"
         )
-
 @router.post("/register-face")
-def register_face(file: UploadFile = File(...)):
+async def register_face(file: UploadFile = File(...)):
     global ADMIN_EMBEDDING_CACHE
     
     try:
-        image_bytes = file.file.read()
+        image_bytes = await file.read()
         
-        # Guardamos usando forzadamente SFace
-        embedding = FaceService.extract_embedding(
+        # Debe llevar 'await' porque FaceService.extract_embedding es asíncrona
+        embedding = await FaceService.extract_embedding(
             image_bytes, 
             model_name=DEFAULT_MODEL, 
             detector_backend=DEFAULT_DETECTOR, 
@@ -405,6 +404,8 @@ def register_face(file: UploadFile = File(...)):
             status_code=500, 
             detail=f"Error interno procesando el registro: {str(e)}"
         )
+    finally:
+        await file.close()
 
 # ==========================================
 # ENDPOINTS DE AUTENTICACIÓN TRADICIONAL
