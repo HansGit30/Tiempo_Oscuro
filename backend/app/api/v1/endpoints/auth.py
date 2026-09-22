@@ -224,17 +224,20 @@ async def scan_live(file: UploadFile = File(...)):
     finally:
         await file.close()
 
+
 @router.post("/login-face")
-def login_face(file: UploadFile = File(...)):
+async def login_face(file: UploadFile = File(...)):
     try:
-        image_bytes = file.file.read()
+        # 1. Lectura del archivo enviado
+        image_bytes = await file.read()
         if not image_bytes:
             raise HTTPException(
                 status_code=400,
                 detail="El archivo enviado está vacío."
             )
         
-        current_embedding = FaceService.extract_embedding(
+        # 2. Extracción del embedding facial (OBLIGATORIO 'await')
+        current_embedding = await FaceService.extract_embedding(
             image_bytes, 
             model_name=DEFAULT_MODEL, 
             detector_backend=DEFAULT_DETECTOR, 
@@ -251,6 +254,7 @@ def login_face(file: UploadFile = File(...)):
         admin_emb = get_cached_admin_embedding()
         user_id = None
         
+        # 3. Obtener el perfil facial y el ID de usuario registrado
         if not admin_emb:
             response = client.table("admin_face_profile").select("face_embedding, user_id").execute()
             if not response.data or len(response.data) == 0:
@@ -273,15 +277,18 @@ def login_face(file: UploadFile = File(...)):
                 detail="El registro facial no está vinculado a ningún usuario administrador."
             )
 
+        # 4. Validar dimensiones del modelo de vectores
         if len(current_embedding) != len(admin_emb):
             raise HTTPException(
                 status_code=400, 
                 detail="El modelo detectado no coincide con las dimensiones del rostro registrado."
             )
         
+        # 5. Cálculo de similitud
         distance = FaceService.calculate_distance(current_embedding, admin_emb)
         match_percentage = calculate_similarity_percentage(distance)
 
+        # 6. Validar contra el umbral (acceso concedido)
         if distance <= FACE_THRESHOLD and match_percentage >= MIN_MATCH_PERCENTAGE:
             profile_response = client.from_("profiles").select("*").eq("id", user_id).single().execute()
             
@@ -349,6 +356,9 @@ def login_face(file: UploadFile = File(...)):
             status_code=500,
             detail=f"Error interno procesando la autenticación facial: {str(e)}"
         )
+    finally:
+        await file.close()
+
 @router.post("/register-face")
 async def register_face(file: UploadFile = File(...)):
     global ADMIN_EMBEDDING_CACHE
