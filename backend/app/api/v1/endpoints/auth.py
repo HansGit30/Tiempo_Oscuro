@@ -337,6 +337,7 @@ async def login_face(file: UploadFile = File(...)):
                 "authenticated": True,
                 "message": "Autenticación facial exitosa",
                 "match_percentage": match_percentage,
+                "distance": round(distance, 4),
                 "user": {
                     "id": profile.get("id"),
                     "email": user_email,
@@ -345,10 +346,14 @@ async def login_face(file: UploadFile = File(...)):
                 }
             }
         else:
-            raise HTTPException(
-                status_code=401, 
-                detail=f"Acceso denegado: Similitud insuficiente ({match_percentage}%)."
-            )
+            # En lugar de lanzar HTTP 401, retornamos 200 OK informando que no se autenticó.
+            # Esto permite al frontend leer la variable 'match_percentage' y mover la barra visual.
+            return {
+                "authenticated": False,
+                "message": f"Acceso denegado: Similitud insuficiente ({match_percentage}%).",
+                "match_percentage": match_percentage,
+                "distance": round(distance, 4)
+            }
 
     except HTTPException:
         raise
@@ -360,7 +365,6 @@ async def login_face(file: UploadFile = File(...)):
         )
     finally:
         await file.close()
-
 @router.post("/register-face")
 async def register_face(file: UploadFile = File(...)):
     global ADMIN_EMBEDDING_CACHE
