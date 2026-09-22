@@ -487,14 +487,14 @@ def request_supplier(data: SupplierRequestSchema):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 @router.post("/facial-lab/compare-admin")
-def compare_admin_face(file: UploadFile = File(...)):
+async def compare_admin_face(file: UploadFile = File(...)):  # <--- 1. Agregar 'async'
     global ADMIN_EMBEDDING_CACHE
     try:
-        image_bytes = file.file.read()
+        image_bytes = await file.read()  # <--- 2. Usar 'await file.read()'
         
-        current_embedding = FaceService.extract_embedding(
+        # 3. AGREGAR 'await' AQUÍ:
+        current_embedding = await FaceService.extract_embedding(
             image_bytes, 
             model_name=DEFAULT_MODEL, 
             detector_backend=DEFAULT_DETECTOR, 
@@ -544,3 +544,5 @@ def compare_admin_face(file: UploadFile = File(...)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error en escaneo continuo del laboratorio: {str(e)}"
         )
+    finally:
+        await file.close()
