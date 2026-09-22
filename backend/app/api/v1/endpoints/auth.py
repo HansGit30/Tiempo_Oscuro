@@ -71,25 +71,19 @@ def get_cached_admin_embedding():
 
 def calculate_similarity_percentage(distance: float) -> float:
     """
-    Calibración optimizada para SFace / DeepFace:
-    - Distancia <= 0.0  -> 100% de match
-    - Distancia == 0.40 -> ~88% de match
-    - Distancia == 0.50 -> 82% de match (umbral de corte exigido)
-    - Distancia >= 0.70 -> 0% de match
+    Fórmula lineal estable sin cortes prematuros a 0%.
+    - Distancia 0.0 -> 100%
+    - Distancia 0.40 -> 84%
+    - Distancia 0.50 -> 80%
+    - Distancia 0.80 -> 0%
     """
     if distance <= 0.0:
         return 100.0
-    
-    # En SFace, distancias superiores a 0.68 - 0.70 corresponden a rostros totalmente distintos
-    max_threshold = 0.70
-    if distance >= max_threshold:
+    if distance >= 0.80:
         return 0.0
 
-    # Usamos una curva no lineal suave para premiar distancias cercanas al umbral 0.50
-    # manteniendo exactamente el 82% de coincidencia cuando la distancia es 0.50
-    normalized = distance / max_threshold
-    similarity = (1.0 - (normalized ** 0.65)) * 100.0
-
+    # Mapeo directo y progresivo
+    similarity = (1.0 - (distance / 0.80)) * 100.0
     return round(max(0.0, min(100.0, similarity)), 1)
 
 
@@ -194,27 +188,16 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 # ==========================================
 # ENDPOINTS DE RECONOCIMIENTO FACIAL
 # ==========================================
+
 @router.post("/scan-live")
-async def scan_live(file: UploadFile = File(...)):
+def scan_live(file: UploadFile = File(...)):
     try:
-        image_bytes = await file.read()
+        image_bytes = file.file.read()
 
-        # 1. Decodificar la imagen enviada
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        # 2. Reducir resolución para ahorrar hasta un 70% de procesamiento y memoria
-        if img is not None:
-            img_small = cv2.resize(img, (300, 300))
-            # Convertir de nuevo a bytes o matriz liviana
-            _, buffer = cv2.imencode('.jpg', img_small, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
-            image_bytes = buffer.tobytes()
-
-        # 3. Extraer el embedding asegurando el uso del modelo SFace
-        current_embedding = await FaceService.extract_embedding(
+        current_embedding = FaceService.extract_embedding(
             image_bytes, 
-            model_name="SFace",          # <-- Forzamos SFace para optimizar RAM
-            detector_backend="opencv",   # <-- Backend liviano y rápido
+            model_name="SFace", 
+            detector_backend="opencv", 
             enforce_detection=False
         )
 
@@ -231,13 +214,12 @@ async def scan_live(file: UploadFile = File(...)):
         return {
             "detected": True,
             "match_percentage": match_percentage,
-            "distance": round(distance, 4)
+            "distance": round(float(distance), 4)
         }
-    except Exception:
+    except Exception as e:
+        print(f"Error en scan_live: {e}")
         return {"detected": False, "match_percentage": 0, "distance": 1.0}
-    finally:
-        await file.close()
-        
+
 @router.post("/login-face")
 async def login_face(file: UploadFile = File(...)):
     try:
