@@ -4,8 +4,10 @@ import { Camera, ShieldCheck, Scan, AlertTriangle, CheckCircle2, ArrowRight, Use
 
 // --- INTERFACES ---
 interface ScanLiveResponse {
-  match_percentage: number;
-  distance: number;
+  match_percentage?: number;
+  similarity?: number;
+  similarity_percentage?: number;
+  distance?: number;
   is_real?: boolean;
 }
 
@@ -44,7 +46,6 @@ export const CameraScanner: React.FC = () => {
   const isFetchingFrame = useRef<boolean>(false);
   const isAuthenticatingRef = useRef<boolean>(false);
   const lastFailedAuthTime = useRef<number>(0);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   // --- ESTADOS ---
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
@@ -92,20 +93,17 @@ export const CameraScanner: React.FC = () => {
   useEffect(() => {
     return () => {
       stopCamera();
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
     };
   }, []);
 
-  // Envío de fotogramas livianos para el preview en vivo (320x240 @ 0.5 calidad)
+  // Envío de fotogramas adaptativo (Procesamiento asíncrono ordenado)
   const captureFastFrameAndSend = useCallback(async () => {
     const video = videoRef.current;
     const miniCanvas = miniCanvasRef.current;
 
-    // Control estricto de concurrencia: Si ya hay un request activo, cancelar el nuevo envío
     if (
       isFetchingFrame.current ||
+      isAuthenticatingRef.current ||
       !video ||
       !miniCanvas ||
       video.readyState !== video.HAVE_ENOUGH_DATA
@@ -122,59 +120,73 @@ export const CameraScanner: React.FC = () => {
     miniCanvas.height = 240;
     ctx.drawImage(video, 0, 0, 320, 240);
 
-    miniCanvas.toBlob(
-      async (blob) => {
-        if (!blob) {
-          isFetchingFrame.current = false;
-          return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', blob, 'frame_small.jpg');
-
-        abortControllerRef.current = new AbortController();
-
-        try {
-          // Petición apuntando explícitamente al endpoint de Render
-          const response = await fetch(`${API_BASE_URL}/scan-live`, {
-            method: 'POST',
-            body: formData,
-            signal: abortControllerRef.current.signal,
-          });
-
-          if (response.ok) {
-            const data: ScanLiveResponse = await response.json();
-            if (typeof data.match_percentage === 'number') {
-              setSimilarity(Math.round(data.match_percentage));
-            }
-            setIsSpoofDetected(data.is_real === false);
-          }
-        } catch (error: unknown) {
-          if (error instanceof Error && error.name !== 'AbortError') {
-            console.error('Error enviando fotograma:', error);
-          }
-        } finally {
-          isFetchingFrame.current = false;
-        }
-      },
-      'image/jpeg',
-      0.5
+    const blob = await new Promise<Blob | null>((resolve) =>
+      miniCanvas.toBlob(resolve, 'image/jpeg', 0.75)
     );
-  }, []);
 
-  // Intervalo optimizado para Servidores Gratuitos en Render (1.5 segundos)
-  useEffect(() => {
-    if (!isCameraActive || activeTab !== 'login' || userData) {
-      setSimilarity(0);
-      setIsSpoofDetected(false);
+    if (!blob) {
+      isFetchingFrame.current = false;
       return;
     }
 
-    const intervalId = setInterval(captureFastFrameAndSend, 1500);
-    return () => clearInterval(intervalId);
+    const formData = new FormData();
+    formData.append('file', blob, 'frame_small.jpg');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/scan-live`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data: ScanLiveResponse = await response.json();
+        
+        // Extracción flexible para soportar cualquier nombre de variable retornado por FastAPI
+        const val = data.match_percentage ?? data.similarity ?? data.similarity_percentage;
+        
+        if (typeof val === 'number') {
+          setSimilarity(Math.round(val));
+        }
+        setIsSpoofDetected(data.is_real === false);
+      }
+    } catch (error: unknown) {
+      console.error('Error enviando fotograma:', error);
+    } finally {
+      isFetchingFrame.current = false;
+    }
+  }, []);
+
+  // Bucle de lectura secuencial adaptativo
+  useEffect(() => {
+    //let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let isMounted = true;
+
+    const loop = async () => {
+      if (!isCameraActive || activeTab !== 'login' || userData) {
+        setSimilarity(0);
+        setIsSpoofDetected(false);
+        return;
+      }
+
+      await captureFastFrameAndSend();
+
+      if (isMounted) {
+        timeoutId = setTimeout(loop, 600);
+      }
+    };
+
+    if (isCameraActive && activeTab === 'login' && !userData) {
+      loop();
+    }
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [isCameraActive, activeTab, userData, captureFastFrameAndSend]);
 
-  // Proceso de Autenticación Facial
+  // Proceso de Autenticación Facial Manual / Auto
   const handleLogin = useCallback(async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -182,10 +194,6 @@ export const CameraScanner: React.FC = () => {
     if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
       isAuthenticatingRef.current = false;
       return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
     }
 
     setLoading(true);
@@ -280,7 +288,7 @@ export const CameraScanner: React.FC = () => {
     const isCoolingDown = now - lastFailedAuthTime.current < 3000;
 
     if (
-      similarity >= 75 &&
+      similarity >= 82 &&
       activeTab === 'login' &&
       !loading &&
       !userData &&
